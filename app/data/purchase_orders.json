@@ -1,0 +1,302 @@
+[
+  {
+    "po_number": "PO-2024-001",
+    "supplier_name": "PharmaChem Supplies Ltd",
+    "po_date": "2024-01-10T00:00:00",
+    "expected_delivery": "2024-02-10T00:00:00",
+    "subtotal": 7977.50,
+    "tax": 1595.50,
+    "total": 9573.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Paracetamol BP 500mg",
+        "item_code": "API-001",
+        "quantity": 50.0,
+        "unit": "kg",
+        "unit_price": 125.00,
+        "total": 6250.00
+      },
+      {
+        "line_number": "2",
+        "description": "Microcrystalline Cellulose",
+        "item_code": "EXC-023",
+        "quantity": 100.0,
+        "unit": "kg",
+        "unit_price": 8.50,
+        "total": 850.00
+      },
+      {
+        "line_number": "3",
+        "description": "Magnesium Stearate Ph Eur",
+        "item_code": "EXC-045",
+        "quantity": 25.0,
+        "unit": "kg",
+        "unit_price": 24.00,
+        "total": 600.00
+      },
+      {
+        "line_number": "4",
+        "description": "Titanium Dioxide E171",
+        "item_code": "COL-012",
+        "quantity": 15.0,
+        "unit": "kg",
+        "unit_price": 18.50,
+        "total": 277.50
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2024-002",
+    "supplier_name": "BioActive Materials UK",
+    "po_date": "2024-01-12T00:00:00",
+    "expected_delivery": "2024-02-12T00:00:00",
+    "subtotal": 4440.00,
+    "tax": 888.00,
+    "total": 5328.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Ascorbic Acid USP",
+        "item_code": "BIO-751",
+        "quantity": 75.0,
+        "unit": "kg",
+        "unit_price": 32.00,
+        "total": 2400.00
+      },
+      {
+        "line_number": "2",
+        "description": "Citric Acid Anhydrous",
+        "item_code": "BIO-822",
+        "quantity": 100.0,
+        "unit": "kg",
+        "unit_price": 12.50,
+        "total": 1250.00
+      },
+      {
+        "line_number": "3",
+        "description": "Sodium Benzoate",
+        "item_code": "BIO-943",
+        "quantity": 50.0,
+        "unit": "kg",
+        "unit_price": 15.80,
+        "total": 790.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2024-003",
+    "supplier_name": "MedChem Ingredients",
+    "po_date": "2024-01-15T00:00:00",
+    "expected_delivery": "2024-02-15T00:00:00",
+    "subtotal": 6135.00,
+    "tax": 1227.00,
+    "total": 7362.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Gelatin Type A 200 Bloom",
+        "item_code": "MC-215",
+        "quantity": 50.0,
+        "unit": "kg",
+        "unit_price": 45.00,
+        "total": 2250.00
+      },
+      {
+        "line_number": "2",
+        "description": "Lactose Monohydrate Mesh 200",
+        "item_code": "MC-376",
+        "quantity": 150.0,
+        "unit": "kg",
+        "unit_price": 11.20,
+        "total": 1680.00
+      },
+      {
+        "line_number": "3",
+        "description": "Pregelatinized Starch",
+        "item_code": "MC-584",
+        "quantity": 200.0,
+        "unit": "kg",
+        "unit_price": 6.75,
+        "total": 1350.00
+      },
+      {
+        "line_number": "4",
+        "description": "Croscarmellose Sodium",
+        "item_code": "MC-492",
+        "quantity": 30.0,
+        "unit": "kg",
+        "unit_price": 28.50,
+        "total": 855.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2024-004",
+    "supplier_name": "Global Pharma Supply Co.",
+    "po_date": "2024-01-18T00:00:00",
+    "expected_delivery": "2024-02-18T00:00:00",
+    "subtotal": 10980.00,
+    "tax": 2196.00,
+    "total": 13176.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Ibuprofen BP 200mg",
+        "item_code": "GPS-A101",
+        "quantity": 100.0,
+        "unit": "kg",
+        "unit_price": 80.00,
+        "total": 8000.00
+      },
+      {
+        "line_number": "2",
+        "description": "Povidone K30 USP",
+        "item_code": "GPS-E045",
+        "quantity": 75.0,
+        "unit": "kg",
+        "unit_price": 22.00,
+        "total": 1650.00
+      },
+      {
+        "line_number": "3",
+        "description": "Sodium Starch Glycolate",
+        "item_code": "GPS-E067",
+        "quantity": 40.0,
+        "unit": "kg",
+        "unit_price": 19.50,
+        "total": 780.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2024-005",
+    "supplier_name": "EuroChem Trading Ltd",
+    "po_date": "2024-01-22T00:00:00",
+    "expected_delivery": "2024-02-22T00:00:00",
+    "subtotal": 4643.00,
+    "tax": 928.60,
+    "total": 5571.60,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Mannitol Granular USP",
+        "item_code": "EC-M-440",
+        "quantity": 120.0,
+        "unit": "kg",
+        "unit_price": 14.50,
+        "total": 1740.00
+      },
+      {
+        "line_number": "2",
+        "description": "Talc Pharma Grade",
+        "item_code": "EC-T-892",
+        "quantity": 60.0,
+        "unit": "kg",
+        "unit_price": 8.80,
+        "total": 528.00
+      },
+      {
+        "line_number": "3",
+        "description": "Colloidal Silicon Dioxide",
+        "item_code": "EC-S-225",
+        "quantity": 25.0,
+        "unit": "kg",
+        "unit_price": 35.00,
+        "total": 875.00
+      },
+      {
+        "line_number": "4",
+        "description": "Hypromellose 2910",
+        "item_code": "EC-H-667",
+        "quantity": 80.0,
+        "unit": "kg",
+        "unit_price": 18.75,
+        "total": 1500.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2026-001",
+    "supplier_name": "Acme Corp",
+    "po_date": "2026-01-15T00:00:00",
+    "expected_delivery": "2026-02-15T00:00:00",
+    "subtotal": 1000.00,
+    "tax": 100.00,
+    "total": 1100.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Widget A - Premium",
+        "quantity": 100.0,
+        "unit_price": 8.00,
+        "total": 800.00
+      },
+      {
+        "line_number": "2",
+        "description": "Widget B - Standard",
+        "quantity": 50.0,
+        "unit_price": 4.00,
+        "total": 200.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2026-002",
+    "supplier_name": "TechSupply Inc",
+    "po_date": "2026-01-20T00:00:00",
+    "expected_delivery": "2026-02-20T00:00:00",
+    "subtotal": 2500.00,
+    "tax": 250.00,
+    "total": 2750.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Server Component XYZ-100",
+        "quantity": 5.0,
+        "unit_price": 400.00,
+        "total": 2000.00
+      },
+      {
+        "line_number": "2",
+        "description": "Network Cable 50M",
+        "quantity": 10.0,
+        "unit_price": 50.00,
+        "total": 500.00
+      }
+    ],
+    "po_status": "open"
+  },
+  {
+    "po_number": "PO-2026-003",
+    "supplier_name": "Paper Plus LLC",
+    "po_date": "2026-01-10T00:00:00",
+    "expected_delivery": "2026-01-25T00:00:00",
+    "subtotal": 500.00,
+    "tax": 50.00,
+    "total": 550.00,
+    "line_items": [
+      {
+        "line_number": "1",
+        "description": "Office Paper - 10 reams",
+        "quantity": 10.0,
+        "unit_price": 25.00,
+        "total": 250.00
+      },
+      {
+        "line_number": "2",
+        "description": "Envelopes - Box of 500",
+        "quantity": 5.0,
+        "unit_price": 50.00,
+        "total": 250.00
+      }
+    ],
+    "po_status": "open"
+  }
+]
