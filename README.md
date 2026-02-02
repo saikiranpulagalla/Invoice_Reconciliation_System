@@ -27,7 +27,7 @@ This system does all of that **automatically** using AI agents that work togethe
 
 ```mermaid
 graph TB
-    Start([Invoice PDF/Image]) --> DI[Document Intelligence Agent]
+    Start([Invoice PDF / Image]) --> DI[Document Intelligence Agent]
     DI -->|Extracted Data| MA[Matching Agent]
     MA -->|Matched PO| DD[Discrepancy Detection Agent]
     DD -->|Discrepancies Found| RR[Resolution Agent]
@@ -35,12 +35,17 @@ graph TB
     HR -->|Yes| HRA[Human Reviewer Agent]
     HR -->|No| End([Final Decision])
     HRA --> End
-    
-    style DI fill:#e1f5ff
-    style MA fill:#fff4e1
-    style DD fill:#ffe1e1
-    style RR fill:#e1ffe1
-    style HRA fill:#f0e1ff
+
+    %% Styles with strong contrast
+    style Start fill:#ffffff,stroke:#000000,color:#000000
+    style End fill:#ffffff,stroke:#000000,color:#000000
+
+    style DI fill:#b3e5ff,stroke:#003366,color:#000000
+    style MA fill:#ffe0b3,stroke:#663c00,color:#000000
+    style DD fill:#ffb3b3,stroke:#660000,color:#000000
+    style RR fill:#b3ffcc,stroke:#004d1a,color:#000000
+    style HRA fill:#d9b3ff,stroke:#3d0066,color:#000000
+
 ```
 
 ### Agent Communication Flow
