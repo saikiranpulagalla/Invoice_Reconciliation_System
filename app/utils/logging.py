@@ -4,12 +4,15 @@ Structured logging for the reconciliation system.
 
 import logging
 import json
+import os
 from datetime import datetime
 from typing import Any, Optional
 from app.config import get_config
 
 
-config = get_config()
+# Skip API key check if running in Streamlit
+skip_check = os.getenv("SKIP_API_KEY_CHECK", "false").lower() == "true"
+config = get_config(skip_api_key_check=skip_check)
 
 
 class StructuredFormatter(logging.Formatter):
