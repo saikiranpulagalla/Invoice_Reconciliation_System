@@ -15,6 +15,10 @@ All logic is in app.agents and app.main.
 from dotenv import load_dotenv
 load_dotenv()
 
+# Set environment to skip API key validation during import
+import os
+os.environ["SKIP_API_KEY_CHECK"] = "true"
+
 import streamlit as st
 import asyncio
 import json
@@ -32,6 +36,67 @@ from app.schemas.output import ReconciliationOutput
 
 
 # ============================================================================
+# API KEY MANAGEMENT
+# ============================================================================
+
+def check_and_setup_api_key():
+    """
+    Check if API key exists in .env file.
+    If not, prompt user to enter it in the UI.
+    """
+    api_key = os.getenv("GOOGLE_API_KEY")
+    
+    if not api_key:
+        st.warning("⚠️ No Google API Key found in .env file")
+        
+        # Create a form for API key input
+        with st.form("api_key_form"):
+            st.markdown("### 🔑 Enter Your Google API Key")
+            st.markdown("""
+            To use this application, you need a Google API key for Gemini.
+            
+            **Get your API key**:
+            1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+            2. Click "Create API Key"
+            3. Copy the key and paste it below
+            """)
+            
+            api_key_input = st.text_input(
+                "Google API Key",
+                type="password",
+                placeholder="paste-your-api-key-here",
+                help="Your API key will be used only for this session"
+            )
+            
+            submitted = st.form_submit_button("✅ Set API Key", use_container_width=True)
+            
+            if submitted:
+                if api_key_input:
+                    # Set the API key in environment
+                    os.environ["GOOGLE_API_KEY"] = api_key_input
+                    st.session_state.api_key = api_key_input
+                    st.success("✅ API Key set successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Please enter an API key")
+        
+        return False
+    else:
+        st.session_state.api_key = api_key
+        return True
+
+
+def ensure_gemini_config():
+    """
+    Ensure the system is configured to use only gemini-2.5-flash model.
+    """
+    os.environ["LLM_PROVIDER"] = "gemini"
+    os.environ["LLM_MODEL"] = "gemini-2.5-flash"
+    os.environ["LLM_TEMPERATURE"] = "0.3"
+    os.environ["LLM_MAX_TOKENS"] = "2000"
+
+
+# ============================================================================
 # PAGE CONFIGURATION
 # ============================================================================
 
@@ -41,6 +106,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Ensure Gemini configuration
+ensure_gemini_config()
+
+# Check API key and setup if needed
+if not check_and_setup_api_key():
+    st.stop()  # Stop execution if no API key
 
 # Custom CSS for better styling
 st.markdown("""
@@ -56,6 +128,18 @@ st.markdown("""
         padding: 10px;
         border-radius: 5px;
         border-left: 4px solid #007bff;
+        color: #000;
+    }
+    .agent-box {
+        background-color: #e7f3ff;
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #007bff;
+        color: #000;
+        font-weight: bold;
+    }
+    .expander-text {
+        color: #000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -84,6 +168,19 @@ st.divider()
 with st.sidebar:
     st.header("⚙️ Settings")
     
+    # Show API Key status
+    with st.expander("🔑 API Configuration", expanded=False):
+        if st.session_state.get("api_key"):
+            st.success("✅ API Key: Configured")
+            st.info("""
+            **Model**: gemini-2.5-flash  
+            **Provider**: Google Gemini  
+            **Temperature**: 0.3  
+            **Max Tokens**: 2000  
+            """)
+        else:
+            st.error("❌ API Key: Not configured")
+    
     # Show configuration info
     with st.expander("System Configuration", expanded=False):
         from app.config import get_config
@@ -107,6 +204,7 @@ with st.sidebar:
         - 🔍 Matching: Find matching Purchase Order
         - ⚠️ Discrepancy Detection: Identify differences
         - ✅ Resolution: Recommend action
+        - 👤 Human Reviewer: Feedback & override
         
         **Features**:
         - Confidence scoring at 3 levels
@@ -395,9 +493,9 @@ def display_timeline(output: ReconciliationOutput) -> None:
         with col:
             st.markdown(f"""
             <div style="text-align: center; padding: 15px; 
-                        background-color: #e7f3ff; border-radius: 10px;">
+                        background-color: #e7f3ff; border-radius: 10px; border: 2px solid #007bff;">
                 <div style="font-size: 24px;">{emoji}</div>
-                <div style="font-size: 12px; margin-top: 5px;">{name}</div>
+                <div style="font-size: 12px; margin-top: 5px; color: #000; font-weight: bold;">{name}</div>
                 <div style="font-size: 11px; margin-top: 5px; color: green;">✓</div>
             </div>
             """, unsafe_allow_html=True)
