@@ -134,3 +134,4 @@ app/data/invoices/*
 !app/data/invoices/.gitkeep
 .DS_Store
 .vscode/settings.json
+./run_ui.py

@@ -15,12 +15,22 @@ All logic is in app.agents and app.main.
 from dotenv import load_dotenv
 load_dotenv()
 
+# Set environment to skip API key validation during import
+import os
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports to work in Streamlit Cloud
+current_dir = Path(__file__).parent.parent.parent  # Go up to project root
+sys.path.insert(0, str(current_dir))
+
+os.environ["SKIP_API_KEY_CHECK"] = "true"
+
 import streamlit as st
 import asyncio
 import json
 import tempfile
 import time
-from pathlib import Path
 from datetime import datetime
 from typing import Optional
 import pandas as pd
@@ -29,6 +39,67 @@ import pandas as pd
 from app.main import process_invoice
 from app.state import ReconciliationState
 from app.schemas.output import ReconciliationOutput
+
+
+# ============================================================================
+# API KEY MANAGEMENT
+# ============================================================================
+
+def check_and_setup_api_key():
+    """
+    Check if API key exists in .env file.
+    If not, prompt user to enter it in the UI.
+    """
+    api_key = os.getenv("GOOGLE_API_KEY")
+    
+    if not api_key:
+        st.warning("⚠️ No Google API Key found in .env file")
+        
+        # Create a form for API key input
+        with st.form("api_key_form"):
+            st.markdown("### 🔑 Enter Your Google API Key")
+            st.markdown("""
+            To use this application, you need a Google API key for Gemini.
+            
+            **Get your API key**:
+            1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+            2. Click "Create API Key"
+            3. Copy the key and paste it below
+            """)
+            
+            api_key_input = st.text_input(
+                "Google API Key",
+                type="password",
+                placeholder="paste-your-api-key-here",
+                help="Your API key will be used only for this session"
+            )
+            
+            submitted = st.form_submit_button("✅ Set API Key", use_container_width=True)
+            
+            if submitted:
+                if api_key_input:
+                    # Set the API key in environment
+                    os.environ["GOOGLE_API_KEY"] = api_key_input
+                    st.session_state.api_key = api_key_input
+                    st.success("✅ API Key set successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Please enter an API key")
+        
+        return False
+    else:
+        st.session_state.api_key = api_key
+        return True
+
+
+def ensure_gemini_config():
+    """
+    Ensure the system is configured to use only gemini-2.5-flash model.
+    """
+    os.environ["LLM_PROVIDER"] = "gemini"
+    os.environ["LLM_MODEL"] = "gemini-2.5-flash"
+    os.environ["LLM_TEMPERATURE"] = "0.3"
+    os.environ["LLM_MAX_TOKENS"] = "2000"
 
 
 # ============================================================================
@@ -41,6 +112,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Ensure Gemini configuration
+ensure_gemini_config()
+
+# Check API key and setup if needed
+if not check_and_setup_api_key():
+    st.stop()  # Stop execution if no API key
 
 # Custom CSS for better styling
 st.markdown("""
@@ -56,6 +134,18 @@ st.markdown("""
         padding: 10px;
         border-radius: 5px;
         border-left: 4px solid #007bff;
+        color: #000;
+    }
+    .agent-box {
+        background-color: #e7f3ff;
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #007bff;
+        color: #000;
+        font-weight: bold;
+    }
+    .expander-text {
+        color: #000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -84,10 +174,23 @@ st.divider()
 with st.sidebar:
     st.header("⚙️ Settings")
     
+    # Show API Key status
+    with st.expander("🔑 API Configuration", expanded=False):
+        if st.session_state.get("api_key"):
+            st.success("✅ API Key: Configured")
+            st.info("""
+            **Model**: gemini-2.5-flash  
+            **Provider**: Google Gemini  
+            **Temperature**: 0.3  
+            **Max Tokens**: 2000  
+            """)
+        else:
+            st.error("❌ API Key: Not configured")
+    
     # Show configuration info
     with st.expander("System Configuration", expanded=False):
         from app.config import get_config
-        config = get_config()
+        config = get_config(skip_api_key_check=True)
         st.info(f"""
         **LLM Provider**: {config.LLM_PROVIDER}  
         **Model**: {config.LLM_MODEL}  
@@ -107,6 +210,7 @@ with st.sidebar:
         - 🔍 Matching: Find matching Purchase Order
         - ⚠️ Discrepancy Detection: Identify differences
         - ✅ Resolution: Recommend action
+        - 👤 Human Reviewer: Feedback & override
         
         **Features**:
         - Confidence scoring at 3 levels
@@ -114,6 +218,20 @@ with st.sidebar:
         - Explainable decisions
         - Full audit trail
         """)
+    
+    # Debug section
+    with st.expander("🐛 Debug Info", expanded=False):
+        st.caption("**Environment**")
+        st.code(f"""
+API Key Set: {bool(st.session_state.get('api_key'))}
+LLM Provider: {os.getenv('LLM_PROVIDER', 'gemini')}
+LLM Model: {os.getenv('LLM_MODEL', 'gemini-2.5-flash')}
+Streamlit Headless: {os.getenv('STREAMLIT_SERVER_HEADLESS', 'false')}
+Skip API Check: {os.getenv('SKIP_API_KEY_CHECK', 'false')}
+        """, language="text")
+        
+        if st.button("🔄 Reload Config"):
+            st.rerun()
 
 
 # ============================================================================
@@ -147,29 +265,66 @@ st.divider()
 # PIPELINE EXECUTION
 # ============================================================================
 
-def run_pipeline(file_path: str) -> Optional[ReconciliationOutput]:
+def run_pipeline(file_path: str, progress_callback=None) -> Optional[ReconciliationOutput]:
     """
-    Call the existing agent pipeline.
+    Call the existing agent pipeline with timeout and error handling.
     Returns the final output or None if error.
+    
+    Args:
+        file_path: Path to the invoice file
+        progress_callback: Optional callback function to update progress
     """
     try:
-        # Run async pipeline
+        # Run async pipeline with timeout
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
         # Generate invoice ID from filename
         invoice_id = Path(file_path).stem
         
-        # Run the agent pipeline
-        result = loop.run_until_complete(
-            process_invoice(file_path, invoice_id)
-        )
+        # Update progress
+        if progress_callback:
+            progress_callback(25, "📋 Extracting invoice data...")
         
-        loop.close()
-        return result
+        # Run the agent pipeline with timeout (60 seconds)
+        try:
+            result = loop.run_until_complete(
+                asyncio.wait_for(
+                    process_invoice(file_path, invoice_id),
+                    timeout=60.0
+                )
+            )
+            
+            if progress_callback:
+                progress_callback(100, "✅ Processing complete!")
+            
+            loop.close()
+            return result
         
+        except asyncio.TimeoutError:
+            loop.close()
+            st.error("⏱️ Pipeline timeout: Processing took too long (>60s). This may indicate an API connectivity issue.")
+            st.info("**Troubleshooting**:\n- Check your internet connection\n- Verify your API key is valid\n- Try again in a moment")
+            return None
+        
+        except Exception as e:
+            loop.close()
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "API" in error_msg or "api" in error_msg:
+                st.error(f"🔑 API Error: {error_msg}")
+                st.info("**Check**:\n- API key is valid\n- API key has sufficient quota\n- Internet connection is working")
+            elif "file" in error_msg.lower():
+                st.error(f"📁 File Error: {error_msg}")
+                st.info("**Check**:\n- File exists and is readable\n- File format is supported (PDF, PNG, JPG)")
+            else:
+                st.error(f"❌ Pipeline Error: {error_msg}")
+            
+            return None
+    
     except Exception as e:
-        st.error(f"Pipeline Error: {str(e)}")
+        st.error(f"❌ Unexpected Error: {str(e)}")
         return None
 
 
@@ -395,9 +550,9 @@ def display_timeline(output: ReconciliationOutput) -> None:
         with col:
             st.markdown(f"""
             <div style="text-align: center; padding: 15px; 
-                        background-color: #e7f3ff; border-radius: 10px;">
+                        background-color: #e7f3ff; border-radius: 10px; border: 2px solid #007bff;">
                 <div style="font-size: 24px;">{emoji}</div>
-                <div style="font-size: 12px; margin-top: 5px;">{name}</div>
+                <div style="font-size: 12px; margin-top: 5px; color: #000; font-weight: bold;">{name}</div>
                 <div style="font-size: 11px; margin-top: 5px; color: green;">✓</div>
             </div>
             """, unsafe_allow_html=True)
@@ -499,13 +654,19 @@ if uploaded_file or show_sample:
             progress_bar = st.progress(0)
             status_text = st.empty()
             
+            def update_progress(value, message):
+                """Update progress bar and status text."""
+                progress_bar.progress(min(value, 100))
+                status_text.text(message)
+            
             try:
-                # Run pipeline with timing
+                # Run pipeline with timing and progress callback
                 start_time = time.time()
-                status_text.text("📋 Running Document Intelligence Agent...")
-                progress_bar.progress(20)
                 
-                result = run_pipeline(st.session_state.file_path)
+                result = run_pipeline(
+                    st.session_state.file_path,
+                    progress_callback=update_progress
+                )
                 
                 if result:
                     elapsed_time = time.time() - start_time
@@ -519,11 +680,10 @@ if uploaded_file or show_sample:
                     # Clear running state
                     st.session_state.running = False
                 else:
-                    st.error("❌ Pipeline failed to produce output")
                     st.session_state.running = False
             
             except Exception as e:
-                st.error(f"❌ Error running pipeline: {str(e)}")
+                st.error(f"❌ Unexpected error: {str(e)}")
                 st.session_state.running = False
     
     # Display results if available

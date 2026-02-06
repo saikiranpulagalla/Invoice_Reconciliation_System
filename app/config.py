@@ -75,13 +75,22 @@ class Config:
     GRAPH_RECURSION_LIMIT: int = 100
     
     @classmethod
-    def validate(cls) -> None:
-        """Validate configuration."""
-        if cls.LLM_PROVIDER == "openai" and not cls.LLM_API_KEY:
-            raise ValueError("LLM_API_KEY must be set for OpenAI provider")
+    def validate(cls, skip_api_key_check: bool = False) -> None:
+        """
+        Validate configuration.
         
-        if cls.LLM_PROVIDER == "gemini" and not cls.GOOGLE_API_KEY:
-            raise ValueError("GOOGLE_API_KEY must be set for Gemini provider")
+        Args:
+            skip_api_key_check: If True, skip API key validation (for Streamlit UI)
+        """
+        # Skip API key validation if explicitly requested or if running in Streamlit Cloud
+        skip_check = skip_api_key_check or os.getenv("STREAMLIT_SERVER_HEADLESS") == "true" or os.getenv("SKIP_API_KEY_CHECK") == "true"
+        
+        if not skip_check:
+            if cls.LLM_PROVIDER == "openai" and not cls.LLM_API_KEY:
+                raise ValueError("LLM_API_KEY must be set for OpenAI provider")
+            
+            if cls.LLM_PROVIDER == "gemini" and not cls.GOOGLE_API_KEY:
+                raise ValueError("GOOGLE_API_KEY must be set for Gemini provider")
         
         if cls.LLM_PROVIDER not in ["openai", "azure", "custom", "gemini", "mock"]:
             raise ValueError(f"Invalid LLM_PROVIDER: {cls.LLM_PROVIDER}")
@@ -108,8 +117,14 @@ class TestConfig(Config):
     ENABLE_HUMAN_REVIEW = False
 
 
-def get_config(env: str = None) -> Config:
-    """Get configuration based on environment."""
+def get_config(env: str = None, skip_api_key_check: bool = False) -> Config:
+    """
+    Get configuration based on environment.
+    
+    Args:
+        env: Environment name (development, production, test)
+        skip_api_key_check: If True, skip API key validation (for Streamlit UI)
+    """
     if env is None:
         env = os.getenv("ENV", "development").lower()
     
@@ -121,5 +136,5 @@ def get_config(env: str = None) -> Config:
         config = DevelopmentConfig()
     
     # Validate configuration on creation
-    config.validate()
+    config.validate(skip_api_key_check=skip_api_key_check)
     return config
