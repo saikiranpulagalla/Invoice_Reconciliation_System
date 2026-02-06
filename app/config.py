@@ -82,7 +82,8 @@ class Config:
         Args:
             skip_api_key_check: If True, skip API key validation (for Streamlit UI)
         """
-        if not skip_api_key_check:
+        # Skip API key validation if explicitly requested or if running in Streamlit Cloud
+        if not skip_api_key_check and os.getenv("STREAMLIT_SERVER_HEADLESS") != "true":
             if cls.LLM_PROVIDER == "openai" and not cls.LLM_API_KEY:
                 raise ValueError("LLM_API_KEY must be set for OpenAI provider")
             
@@ -135,4 +136,3 @@ def get_config(env: str = None, skip_api_key_check: bool = False) -> Config:
     # Validate configuration on creation
     config.validate(skip_api_key_check=skip_api_key_check)
     return config
-
