@@ -6,7 +6,11 @@ It simply imports and runs the actual Streamlit app from app/ui/streamlit_app.py
 """
 
 import sys
+import os
 from pathlib import Path
+
+# Set Streamlit environment variable FIRST
+os.environ["STREAMLIT_SERVER_HEADLESS"] = "true"
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
