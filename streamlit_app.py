@@ -17,4 +17,4 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import and run the actual app
 from app.ui.streamlit_app import *  # noqa: F401, F403
-S
+
